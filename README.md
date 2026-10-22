@@ -1,59 +1,197 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+### Task 7 Images.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
 
-## About Laravel
+# Image Upload for Products (Laravel)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This guide explains how to upload, save, display, and delete product images in Laravel.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Step 1: Create a Migration
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Run the following command in your terminal - Remember to change "Products" to your resource!:
 
-## Learning Laravel
+```bash
+php artisan make:migration add_image_path_to_products_table --table=products
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Open the new migration in `database/migrations` and add:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```php
+public function up(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        $table->string('image_path')->nullable();
+    });
+}
 
-## Laravel Sponsors
+public function down(): void
+{
+    Schema::table('products', function (Blueprint $table) {
+        $table->dropColumn('image_path');
+    });
+}
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Run the migration:
 
-### Premium Partners
+```bash
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+The database now has a column for storing the image path.
 
-## Contributing
+## Step 2: Update the Product (Remember your own resource) Model
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+In `app/Models/Product.php`, update `$fillable`:
 
-## Code of Conduct
+```php
+protected $fillable = [
+    'name',
+    'qty',
+    'price',
+    'description',
+    'image_path'
+];
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Step 3: Add Image Upload to create.blade.php
 
-## Security Vulnerabilities
+Add `enctype="multipart/form-data"` to your existing form:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```html
+<form method="POST"
+      action="{{ route('products.store') }}"
+      enctype="multipart/form-data">
+```
 
-## License
+Inside the form, add:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```html
+<label for="image">Image</label>
+<input type="file" name="image" id="image" accept="image/*">
+```
+
+The `enctype="multipart/form-data"` attribute allows files to be uploaded.
+
+## Step 4: Save the Image in ProductController
+
+In the `store()` method, after creating `$product` and assigning its other attributes:
+
+```php
+// Save the uploaded image
+if ($request->hasFile('image')) {
+    $product->image_path = $request->file('image')->store('products');
+}
+
+// Save product and image path in database
+$product->save();
+```
+
+**Note:** Make sure `$product = new Product();` appears earlier in the method.
+
+In validation remember:
+```php
+'image' => 'nullable|image'
+```
+
+The `store('products')` method saves the file in Laravel's storage and returns its path.
+
+## Step 5: Create an Image Route
+
+In `routes/web.php`, add:
+
+```php
+Route::get('/products/{id}/image', [ProductController::class, 'image'])
+    ->name('products.image');
+```
+
+This route allows the browser to request a product image.
+
+## Step 6: Create the image() Method
+
+At the top of `ProductController.php`, import Storage:
+
+```php
+use Illuminate\Support\Facades\Storage;
+```
+
+Add the following method inside the controller:
+
+```php
+public function image($id)
+{
+    // Find product
+    $product = Product::findOrFail($id);
+
+    // Check if image exists
+    if (!$product->image_path || !Storage::exists($product->image_path)) {
+        abort(404);
+    }
+
+    // Return image to browser
+    return response(
+        Storage::get($product->image_path),
+        200,
+        ['Content-Type' => Storage::mimeType($product->image_path)]
+    );
+}
+```
+
+`Storage::get()` reads the image file, and `response()` sends it to the browser.
+
+## Step 7: Display the Image in index.blade.php
+
+Add an image column to your table header:
+
+```html
+<th>Image</th>
+```
+
+Inside your `@foreach` loop, add:
+
+```blade
+<td>
+    @if($product->image_path)
+        <img src="{{ route('products.image', $product->id) }}" width="100" alt="Product image">
+    @endif
+</td>
+```
+
+---
+
+### Step 8: Display the Image in show.blade.php
+
+Add the following row to your table:
+
+```blade
+<tr>
+    <th>Image</th>
+    <td>
+        @if($product->image_path)
+            <img src="{{ route('products.image', $product->id) }}" width="200" alt="Product image">
+        @endif
+    </td>
+</tr>
+```
+
+### Step 9: Delete the Image When Deleting a Product
+
+Update the `destroy()` method in `ProductController.php`:
+
+```php
+public function destroy($id)
+{
+    $product = Product::findOrFail($id);
+
+    // Delete image from storage
+    if ($product->image_path) {
+        Storage::delete($product->image_path);
+    }
+
+    // Delete product from database
+    $product->delete();
+
+    return redirect()->route('products.index');
+}
+```
+
+This ensures that the uploaded image is also deleted when the product is removed.
