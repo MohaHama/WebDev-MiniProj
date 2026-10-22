@@ -1,7 +1,4 @@
-### Task 7 Images.
-
-
-# Image Upload for Products (Laravel)
+# Task 7: Image Upload for Products (Laravel)
 
 This guide explains how to upload, save, display, and delete product images in Laravel.
 
