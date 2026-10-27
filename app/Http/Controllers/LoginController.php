@@ -20,6 +20,7 @@ class LoginController extends Controller
             'password' => 'required'
         ]);
 
+        // attempt to log in the user using email and password
         if (auth()->attempt($credentials)) {
             return redirect()->route('products.index');
         }

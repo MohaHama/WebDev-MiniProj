@@ -56,18 +56,20 @@
                     <a href="{{ route('products.show', $product->id) }}">Show</a>
                 </td>
 
+                <!-- Delete the selected product -->
                 <td>
-                    <!-- Delete the selected product -->
-                    @auth
-                <form method="POST" action="{{ route('products.destroy', $product->id) }}">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit">Delete</button>
-                </form>
+                @auth
+                    @if(auth()->user()->isAdmin())
+                        <!-- Only admins can see the delete button -->
+                        <form method="POST" action="{{ route('products.destroy', $product->id) }}">
+                            @csrf
+                            @method('DELETE')
+                        
+                            <button type="submit">Delete</button>
+                        </form>
+                    @endif
                 @endauth
-                
-                </td>
+</td>
             </tr>
         @endforeach
     </table>

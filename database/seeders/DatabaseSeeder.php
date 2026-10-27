@@ -23,6 +23,16 @@ class DatabaseSeeder extends Seeder
             'password' => 'password'
         ]);
 
+        //Create an admin user for testing
+        User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => 'password',
+                'role' => 'admin',
+            ]
+        );
+
         // Run ProductSeeder
         $this->call(ProductSeeder::class);
     }

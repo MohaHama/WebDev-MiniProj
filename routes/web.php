@@ -15,7 +15,10 @@ Route::post('/products', [ProductController::class, 'store'])->name('products.st
 
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
 
-Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('auth');
+//Only admins can delete products
+Route::delete('/products/{id}', [ProductController::class, 'destroy'])
+    ->name('products.destroy')
+    ->middleware(['auth', 'admin']);
 
 //Get the image of a product
 Route::get('/products/{id}/image', [ProductController::class, 'image'])->name('products.image');
