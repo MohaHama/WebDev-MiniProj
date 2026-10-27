@@ -17,4 +17,11 @@ class Product extends Model
         'description',
         'image_path'
     ];
+
+
+    //A product can belong to many users' wishlists
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

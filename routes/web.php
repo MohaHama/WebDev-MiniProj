@@ -4,6 +4,7 @@
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 //Products
@@ -32,3 +33,12 @@ Route::post('/login', [LoginController::class, 'store'])->name('login.store')->m
 
 //Logout
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout')->middleware('auth');
+
+
+
+//Wishlist
+Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index')->middleware('auth');
+
+Route::post('/wishlist/{id}', [WishlistController::class, 'store'])->name('wishlist.store')->middleware('auth');
+
+Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy'])->name('wishlist.destroy')->middleware('auth');

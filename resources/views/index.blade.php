@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,19 +11,24 @@
     <h1>Products</h1>
 
     @auth
-    <p>Welcome, {{ auth()->user()->name }}</p>
+        <!-- Show the logged-in user's name -->
+        <p>Welcome, {{ auth()->user()->name }}</p>
 
-    <a href="{{ route('products.create') }}">Create Product</a>
+        <!-- Links for logged-in users -->
+        <a href="{{ route('products.create') }}">Create Product</a>
+        <a href="{{ route('wishlist.index') }}">My Wishlist</a>
 
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit">Logout</button>
-    </form>
+        <!-- Log out the user -->
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit">Logout</button>
+        </form>
     @endauth
 
     @guest
-    <a href="{{ route('register') }}">Register</a>
-    <a href="{{ route('login') }}">Login</a>
+        <!-- Links for guests -->
+        <a href="{{ route('register') }}">Register</a>
+        <a href="{{ route('login') }}">Login</a>
     @endguest
 
     <table border="1">
@@ -34,6 +40,7 @@
             <th>Price</th>
             <th>Description</th>
             <th>Show</th>
+            <th>Wishlist</th>
             <th>Delete</th>
         </tr>
 
@@ -42,9 +49,13 @@
             <tr>
                 <td>
                     <!-- Show the product image -->
-                @if($product->image_path)
-                    <img src="{{ route('products.image', $product->id) }}" alt="{{ $product->name }}" width="100">
-                @endif
+                    @if($product->image_path)
+                        <img
+                            src="{{ route('products.image', $product->id) }}"
+                            alt="{{ $product->name }}"
+                            width="100"
+                        >
+                    @endif
                 </td>
 
                 <td>{{ $product->name }}</td>
@@ -52,21 +63,32 @@
                 <td>{{ $product->price }}</td>
                 <td>{{ $product->description }}</td>
 
+                <!-- Show the product details -->
                 <td>
                     <a href="{{ route('products.show', $product->id) }}">Show</a>
                 </td>
 
+                <!-- Add the product to the user's wishlist -->
                 <td>
-                    <!-- Delete the selected product -->
                     @auth
-                <form method="POST" action="{{ route('products.destroy', $product->id) }}">
-                    @csrf
-                    @method('DELETE')
+                        <form method="POST" action="{{ route('wishlist.store', $product->id) }}">
+                            @csrf
 
-                    <button type="submit">Delete</button>
-                </form>
-                @endauth
-                
+                            <button type="submit">Add to Wishlist</button>
+                        </form>
+                    @endauth
+                </td>
+
+                <!-- Delete the selected product -->
+                <td>
+                    @auth
+                        <form method="POST" action="{{ route('products.destroy', $product->id) }}">
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit">Delete</button>
+                        </form>
+                    @endauth
                 </td>
             </tr>
         @endforeach

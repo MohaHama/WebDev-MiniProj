@@ -46,4 +46,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+
+
+    //A user can have many products in their wishlist
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
 }
