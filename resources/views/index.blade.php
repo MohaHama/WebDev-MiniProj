@@ -9,7 +9,21 @@
 <body>
     <h1>Products</h1>
 
+    @auth
+    <p>Welcome, {{ auth()->user()->name }}</p>
+
     <a href="{{ route('products.create') }}">Create Product</a>
+
+    <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit">Logout</button>
+    </form>
+    @endauth
+
+    @guest
+    <a href="{{ route('register') }}">Register</a>
+    <a href="{{ route('login') }}">Login</a>
+    @endguest
 
     <table border="1">
         <!-- Table headers -->
@@ -44,11 +58,15 @@
 
                 <td>
                     <!-- Delete the selected product -->
-                    <form method="POST" action="{{ route('products.destroy', $product->id) }}">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit">Delete</button>
-                    </form>
+                    @auth
+                <form method="POST" action="{{ route('products.destroy', $product->id) }}">
+                    @csrf
+                    @method('DELETE')
+
+                    <button type="submit">Delete</button>
+                </form>
+                @endauth
+                
                 </td>
             </tr>
         @endforeach
